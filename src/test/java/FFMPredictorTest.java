@@ -8,7 +8,6 @@ import org.junit.jupiter.params.provider.MethodSource;
 import java.util.List;
 
 class FFMPredictorTest {
-    private final static FFMPredictor ffm = new FFMPredictor("src/test/resources/example_model.txt");
     static List<Arguments> ffmPredictorHashTestCases() {
         return List.of(
                 Arguments.of(
@@ -34,11 +33,5 @@ class FFMPredictorTest {
     @MethodSource("sigmoidTestCases")
     void sigmoid(double input, double expected) {
         assertEquals(FFMPredictor.sigmoid(input), expected);
-    }
-
-    @Test
-    void testModelOnSimpleInput() {
-        FeatureValue[] input = new FeatureValue[] {new FeatureValue("a", 1)};
-        assertEquals(ffm.predict(input), 0.5);
     }
 }
