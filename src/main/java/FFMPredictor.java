@@ -4,6 +4,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Class for serving FFM model loaded from file
@@ -21,10 +22,10 @@ public class FFMPredictor implements Model {
     in the first line of the file, there are 4 integers, separated by spaces:
     NUM_FEATURES NUM_FACTORS NUM_FIELD SIZE
     SIZE is the number of coefficients in the model
-    then, there are SIZE lines, i-th line containng the i-th coefficient
+    then, there are SIZE lines, i-th line containing the i-th coefficient
     so the file has SIZE+1 lines in total
      */
-    public FFMPredictor(String path) {
+    FFMPredictor(String path) {
         BufferedReader reader = null;
         try {
             reader = new BufferedReader(new FileReader(path));
@@ -51,7 +52,7 @@ public class FFMPredictor implements Model {
         } finally {
             try {
                 reader.close();
-            } catch (IOException e) {
+            } catch (NullPointerException | IOException e) {
                 e.printStackTrace();
             }
         }
@@ -75,7 +76,7 @@ public class FFMPredictor implements Model {
      *              the length of this array must be equal to NR_FIELD (m_nr_field)
      * @return a number between 0.0 and 1.0 inclusive, interpreted as probability
      */
-    public double predict(int[] input) {
+    private double predict(int[] input) {
         final int kW_NODE_SIZE = 2;
         final int align0 = m_nr_factor*kW_NODE_SIZE;
         final int align1 = m_nr_field*align0;
@@ -104,17 +105,17 @@ public class FFMPredictor implements Model {
         return sigmoid(score);
     }
 
-    public int correct_feature_nr(final int nr) {
+    private int correct_feature_nr(final int nr) {
         assert(nr <= m_nr_feature);
         assert(nr > 0);
         return nr - 1;
     }
 
-    public static double sigmoid(double x) {
+    static double sigmoid(double x) {
         return 1.0/(1.0 + Math.exp(-x));
     }
 
-    static public int[] hash_table(String[] input) {
+    static int[] hash_table(String[] input) {
         final int size = input.length;
         int[] int_input = new int[size];
         for (int i = 0; i < size; ++i) {
@@ -125,52 +126,17 @@ public class FFMPredictor implements Model {
 
     @Override
     public double predict(FeatureValue[] features) {
-        List<String> featureStrings = (List<String>)Arrays.stream(features).map(FeatureValue::toString);
-        return predict(hash_table((String[])featureStrings.toArray()));
+        return predict(hash_table(Arrays.stream(features).map(FeatureValue::toString).toArray(String[]::new)));
     }
 
     public double predict(String[] input) {
         return predict(hash_table(input));
     }
 
-    static public int hash(String str) {
+    private static int hash(String str) {
         final int D = 999999;
         final int mm_hash = MurmurHash.murmur3_32(str);
         return (((mm_hash % D) + D) % D) + 1;
-    }
-
-    static public void test_hash() {
-        String[] sample_input = {
-                "",
-                "a",
-                "bc",
-                "def",
-                "ghij",
-                "klmno",
-                "pqrstu",
-                "vwxyz"
-        };
-        int[] expected = {
-                1,
-                85860,
-                617085,
-                412530,
-                126256,
-                460538,
-                804307,
-                453050
-        };
-
-        for (int i = 0; i < sample_input.length; ++i) {
-
-            int res = hash(sample_input[i]);
-            if (res != expected[i]) {
-                System.err.print("expected: ");
-                System.err.print(expected[i]);
-                System.err.print(" but got: ");
-                System.err.println(res);
-            }
-        }
     }
 
 }
