@@ -129,7 +129,7 @@ public class FFMPredictor implements Model {
         return predict(hash_table(Arrays.stream(features).map(FeatureValue::toString).toArray(String[]::new)));
     }
 
-    public double predict(String[] input) {
+    private double predict(String[] input) {
         return predict(hash_table(input));
     }
 
