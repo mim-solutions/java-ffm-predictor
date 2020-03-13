@@ -6,8 +6,12 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 class FFMPredictorTest {
+    static final FFMPredictor ffm = new FFMPredictor("src/test/resources/test_model.txt");
     static List<Arguments> ffmPredictorHashTestCases() {
         return List.of(
                 Arguments.of(
@@ -34,4 +38,19 @@ class FFMPredictorTest {
     void sigmoid(double input, double expected) {
         assertEquals(FFMPredictor.sigmoid(input), expected);
     }
+
+    static List<Arguments> predictTestCases() {
+        List<FeatureValue> l = ((Stream<FeatureValue>) IntStream.rangeClosed(1, 16).mapToObj(i -> new FeatureValue(String.valueOf(i), i))).collect(Collectors.toList());
+        FeatureValue[] arr = l.toArray(FeatureValue[]::new);
+        // these are essentiall random inputs - as such the result is also completely random - this serves as a check that the model
+        return List.of(
+                Arguments.of(arr, 0.8547664119819542)
+        );
+    }
+
+    // this test serves only as a check that the model file has correct format
+    // the inputs and the output is essentially random
+    @ParameterizedTest
+    @MethodSource("predictTestCases")
+    void predict(FeatureValue[] input, double expected) {assertEquals(ffm.predict(input), expected);}
 }
